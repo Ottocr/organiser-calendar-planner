@@ -5,14 +5,19 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { motion, AnimatePresence } from 'framer-motion';
-import { selectTasks, selectLists, addTask } from '../store/taskSlice';
+import { selectTasks, selectLists } from '../store/taskSlice';
 import { format, parseISO } from 'date-fns';
+import TaskModal from './TaskModal';
+import TaskDetails from './TaskDetails';
 
 function Calendar({ onEditTask }) {
   const dispatch = useDispatch();
   const tasks = useSelector(selectTasks);
   const lists = useSelector(selectLists);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [newTaskDate, setNewTaskDate] = useState(null);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
 
   const events = tasks
     .filter(task => !task.deleted)
@@ -35,26 +40,30 @@ function Calendar({ onEditTask }) {
         list: task.list,
         priority: task.priority,
         completed: task.completed,
-        important: task.important
+        important: task.important,
+        taskData: task // Store the full task data
       }
     }));
 
   const handleEventClick = (info) => {
     setSelectedEvent(info.event);
+    setShowTaskDetails(true);
   };
 
   const handleDateSelect = (selectInfo) => {
-    const title = window.prompt('Enter task title:');
-    if (title) {
-      const newTask = {
-        title,
-        dueDate: selectInfo.start.toISOString(),
-        list: lists[0].id,
-        priority: 'normal'
-      };
-      dispatch(addTask(newTask));
-    }
+    setNewTaskDate(selectInfo.start);
+    setShowTaskModal(true);
     selectInfo.view.calendar.unselect();
+  };
+
+  const handleCloseTaskModal = () => {
+    setShowTaskModal(false);
+    setNewTaskDate(null);
+  };
+
+  const handleCloseTaskDetails = () => {
+    setShowTaskDetails(false);
+    setSelectedEvent(null);
   };
 
   return (
@@ -99,69 +108,21 @@ function Calendar({ onEditTask }) {
         />
       </motion.div>
 
+      {/* Task Creation Modal */}
+      <TaskModal
+        isOpen={showTaskModal}
+        onClose={handleCloseTaskModal}
+        initialDate={newTaskDate}
+      />
+
+      {/* Task Details Sidebar */}
       <AnimatePresence>
-        {selectedEvent && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 right-6 w-96 bg-white rounded-xl shadow-xl p-6"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800">
-                  {selectedEvent.title}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {format(selectedEvent.start, 'PPP')}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onEditTask(tasks.find(t => t.id === selectedEvent.id))}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-
-            {selectedEvent.extendedProps.description && (
-              <p className="text-gray-600 mb-4">
-                {selectedEvent.extendedProps.description}
-              </p>
-            )}
-
-            <div className="flex gap-2">
-              <span
-                className="px-2 py-1 rounded-full text-xs font-medium"
-                style={{
-                  backgroundColor: lists.find(
-                    list => list.id === selectedEvent.extendedProps.list
-                  )?.color,
-                  color: 'white'
-                }}
-              >
-                {lists.find(
-                  list => list.id === selectedEvent.extendedProps.list
-                )?.name}
-              </span>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium priority-${selectedEvent.extendedProps.priority}`}>
-                {selectedEvent.extendedProps.priority}
-              </span>
-              {selectedEvent.extendedProps.important && (
-                <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-400 text-white">
-                  Important
-                </span>
-              )}
-            </div>
-          </motion.div>
+        {showTaskDetails && selectedEvent && (
+          <TaskDetails
+            task={selectedEvent.extendedProps.taskData}
+            onClose={handleCloseTaskDetails}
+            onEdit={onEditTask}
+          />
         )}
       </AnimatePresence>
     </div>

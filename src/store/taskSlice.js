@@ -15,12 +15,12 @@ const initialState = {
     { id: 'low', name: 'Low', color: '#48BB78' },
   ],
   activeFilters: {
-    view: 'tasks',      // 'tasks', 'calendar', 'analytics'
+    view: 'tasks',
     priority: 'all',
     search: '',
-    sortBy: 'dueDate', // 'dueDate', 'priority', 'title'
-    timeframe: 'all',  // 'all', 'today', 'week', 'month'
-    list: null,       // list id or null for all lists
+    sortBy: 'dueDate',
+    timeframe: 'all',
+    list: null,
   },
   settings: {
     theme: 'light',
@@ -43,6 +43,8 @@ const taskSlice = createSlice({
         completed: false,
         deleted: false,
         important: false,
+        checklist: [],
+        attachments: [],
         ...action.payload
       });
     },
@@ -68,6 +70,61 @@ const taskSlice = createSlice({
       const task = state.tasks.find(task => task.id === action.payload);
       if (task) {
         task.important = !task.important;
+        task.updatedAt = new Date().toISOString();
+      }
+    },
+    addChecklistItem: (state, action) => {
+      const { taskId, text } = action.payload;
+      const task = state.tasks.find(task => task.id === taskId);
+      if (task) {
+        if (!task.checklist) task.checklist = [];
+        task.checklist.push({
+          id: Date.now().toString(),
+          text,
+          completed: false,
+          createdAt: new Date().toISOString()
+        });
+        task.updatedAt = new Date().toISOString();
+      }
+    },
+    toggleChecklistItem: (state, action) => {
+      const { taskId, itemId } = action.payload;
+      const task = state.tasks.find(task => task.id === taskId);
+      if (task && task.checklist) {
+        const item = task.checklist.find(item => item.id === itemId);
+        if (item) {
+          item.completed = !item.completed;
+          item.completedAt = item.completed ? new Date().toISOString() : null;
+          task.updatedAt = new Date().toISOString();
+        }
+      }
+    },
+    removeChecklistItem: (state, action) => {
+      const { taskId, itemId } = action.payload;
+      const task = state.tasks.find(task => task.id === taskId);
+      if (task && task.checklist) {
+        task.checklist = task.checklist.filter(item => item.id !== itemId);
+        task.updatedAt = new Date().toISOString();
+      }
+    },
+    addAttachment: (state, action) => {
+      const { taskId, attachment } = action.payload;
+      const task = state.tasks.find(task => task.id === taskId);
+      if (task) {
+        if (!task.attachments) task.attachments = [];
+        task.attachments.push({
+          id: Date.now().toString(),
+          ...attachment,
+          createdAt: new Date().toISOString()
+        });
+        task.updatedAt = new Date().toISOString();
+      }
+    },
+    removeAttachment: (state, action) => {
+      const { taskId, attachmentId } = action.payload;
+      const task = state.tasks.find(task => task.id === taskId);
+      if (task && task.attachments) {
+        task.attachments = task.attachments.filter(att => att.id !== attachmentId);
         task.updatedAt = new Date().toISOString();
       }
     },
@@ -104,7 +161,6 @@ const taskSlice = createSlice({
     },
     deleteList: (state, action) => {
       state.lists = state.lists.filter(list => list.id !== action.payload);
-      // Move tasks from deleted list to inbox
       state.tasks = state.tasks.map(task => 
         task.list === action.payload ? { ...task, list: 'inbox' } : task
       );
@@ -118,12 +174,16 @@ const taskSlice = createSlice({
   },
 });
 
-// Action creators
 export const {
   addTask,
   updateTask,
   toggleTaskComplete,
   toggleTaskImportant,
+  addChecklistItem,
+  toggleChecklistItem,
+  removeChecklistItem,
+  addAttachment,
+  removeAttachment,
   moveTaskToTrash,
   restoreTaskFromTrash,
   deleteTaskPermanently,
@@ -134,14 +194,12 @@ export const {
   updateSettings,
 } = taskSlice.actions;
 
-// Selectors
 export const selectTasks = (state) => state.tasks.tasks;
 export const selectLists = (state) => state.tasks.lists;
 export const selectPriorities = (state) => state.tasks.priorities;
 export const selectActiveFilters = (state) => state.tasks.activeFilters;
 export const selectSettings = (state) => state.tasks.settings;
 
-// Complex selectors
 export const selectFilteredTasks = (state) => {
   const { tasks, activeFilters } = state.tasks;
   let filtered = tasks;
@@ -195,7 +253,6 @@ export const selectFilteredTasks = (state) => {
   return filtered;
 };
 
-// Search selector
 export const selectSearchResults = (state, query) => {
   if (!query) return [];
   
@@ -206,7 +263,6 @@ export const selectSearchResults = (state, query) => {
        task.description?.toLowerCase().includes(searchLower))
     )
     .sort((a, b) => {
-      // Prioritize title matches over description matches
       const aTitle = a.title.toLowerCase();
       const bTitle = b.title.toLowerCase();
       const aStartsWithQuery = aTitle.startsWith(searchLower);
@@ -217,7 +273,7 @@ export const selectSearchResults = (state, query) => {
       
       return aTitle.localeCompare(bTitle);
     })
-    .slice(0, 5); // Limit to 5 results for performance
+    .slice(0, 5);
 };
 
 export default taskSlice.reducer;
