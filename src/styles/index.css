@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .card {
+    @apply bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300;
+  }
+  
+  .btn {
+    @apply px-4 py-2 rounded-md transition-all duration-300 font-medium;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark;
+  }
+  
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+}
+
+/* FullCalendar Customizations */
+.fc {
+  @apply font-sans;
+}
+
+.fc .fc-button-primary {
+  @apply bg-primary border-primary hover:bg-primary-dark;
+}
+
+.fc .fc-event {
+  @apply cursor-pointer transition-transform hover:scale-[1.02];
+}
+
+/* Task Categories */
+.task-urgent {
+  @apply bg-task-urgent text-white;
+}
+
+.task-normal {
+  @apply bg-task-normal text-white;
+}
+
+.task-low {
+  @apply bg-task-low text-white;
+}
+
+/* Animations */
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
