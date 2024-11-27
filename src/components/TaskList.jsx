@@ -29,9 +29,13 @@ import {
   CalendarMonth,
   ChevronLeft,
   ChevronRight,
+  Image as ImageIcon,
+  Mic,
+  CheckBox,
 } from '@mui/icons-material';
 import { format, isToday, isThisWeek, isThisMonth, isBefore, parseISO } from 'date-fns';
 import Matrix from './Matrix';
+import TaskDetails from './TaskDetails';
 
 const timeViews = [
   { id: 'all', label: 'All', icon: ViewList },
@@ -115,6 +119,7 @@ function TaskList({ onEditTask }) {
   const [editingList, setEditingList] = useState(null);
   const [showListModal, setShowListModal] = useState(false);
   const [showListSidebar, setShowListSidebar] = useState(true);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [filters, setFilters] = useState({
     priority: 'all',
   });
@@ -122,12 +127,10 @@ function TaskList({ onEditTask }) {
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks].filter(task => !task.deleted);
 
-    // Filter by selected list
     if (selectedList) {
       filtered = filtered.filter(task => task.list === selectedList);
     }
 
-    // Filter based on current view
     switch (currentView) {
       case 'today':
         filtered = filtered.filter(task => isToday(parseISO(task.dueDate)));
@@ -140,12 +143,10 @@ function TaskList({ onEditTask }) {
         break;
     }
 
-    // Apply additional filters
     if (filters.priority !== 'all') {
       filtered = filtered.filter(task => task.priority === filters.priority);
     }
 
-    // Apply sorting
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'dueDate':
@@ -161,15 +162,18 @@ function TaskList({ onEditTask }) {
     });
   }, [tasks, currentView, selectedList, filters, sortBy, priorities]);
 
-  const handleToggleComplete = (taskId) => {
+  const handleToggleComplete = (e, taskId) => {
+    e.stopPropagation();
     dispatch(toggleTaskComplete(taskId));
   };
 
-  const handleToggleImportant = (taskId) => {
+  const handleToggleImportant = (e, taskId) => {
+    e.stopPropagation();
     dispatch(toggleTaskImportant(taskId));
   };
 
-  const handleDeleteTask = (taskId) => {
+  const handleDeleteTask = (e, taskId) => {
+    e.stopPropagation();
     dispatch(moveTaskToTrash(taskId));
   };
 
@@ -188,6 +192,10 @@ function TaskList({ onEditTask }) {
         setSelectedList(null);
       }
     }
+  };
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
   };
 
   if (isMatrixView) {
@@ -411,12 +419,13 @@ function TaskList({ onEditTask }) {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`group flex items-center p-4 hover:bg-gray-50 rounded-lg transition-colors ${
+                    onClick={() => handleTaskClick(task)}
+                    className={`group flex items-center p-4 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer ${
                       index !== filteredTasks.length - 1 ? 'border-b' : ''
                     }`}
                   >
                     <button
-                      onClick={() => handleToggleComplete(task.id)}
+                      onClick={(e) => handleToggleComplete(e, task.id)}
                       className="mr-4"
                     >
                       {task.completed ? (
@@ -434,7 +443,7 @@ function TaskList({ onEditTask }) {
                           {task.title}
                         </h3>
                         <button
-                          onClick={() => handleToggleImportant(task.id)}
+                          onClick={(e) => handleToggleImportant(e, task.id)}
                           className="text-gray-400 hover:text-yellow-400"
                         >
                           {task.important ? (
@@ -449,7 +458,7 @@ function TaskList({ onEditTask }) {
                           {task.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
                         <span
                           className="px-2 py-1 rounded-full text-xs font-medium"
                           style={{
@@ -469,18 +478,32 @@ function TaskList({ onEditTask }) {
                         }`}>
                           Due {format(parseISO(task.dueDate), 'PP')}
                         </span>
+                        {task.checklist?.length > 0 && (
+                          <span className="flex items-center gap-1 text-sm text-gray-500">
+                            <CheckBox className="w-4 h-4" />
+                            {task.checklist.filter(item => item.completed).length}/{task.checklist.length}
+                          </span>
+                        )}
+                        {task.attachments?.map((attachment, i) => (
+                          <span key={i} className="text-gray-400">
+                            {attachment.type === 'image' ? <ImageIcon className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => onEditTask(task)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditTask(task);
+                        }}
                         className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
                       >
                         <Edit />
                       </button>
                       <button
-                        onClick={() => handleDeleteTask(task.id)}
+                        onClick={(e) => handleDeleteTask(e, task.id)}
                         className="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"
                       >
                         <Delete />
@@ -510,6 +533,19 @@ function TaskList({ onEditTask }) {
           }}
         />
       )}
+
+      <AnimatePresence>
+        {selectedTask && (
+          <TaskDetails
+            task={selectedTask}
+            onClose={() => setSelectedTask(null)}
+            onEdit={() => {
+              onEditTask(selectedTask);
+              setSelectedTask(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

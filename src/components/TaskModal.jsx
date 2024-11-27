@@ -80,7 +80,6 @@ function TaskModal({ isOpen, onClose, task = null, initialDate = null }) {
   }, [task, initialDate, lists, priorities]);
 
   useEffect(() => {
-    // Initialize media recorder
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
@@ -153,7 +152,6 @@ function TaskModal({ isOpen, onClose, task = null, initialDate = null }) {
         [name]: type === 'checkbox' ? checked : value
       };
 
-      // Auto-fill end date when due date changes
       if (name === 'dueDate' && !prev.endDate) {
         newData.endDate = format(addHours(new Date(value), 1), "yyyy-MM-dd'T'HH:mm");
       }
@@ -248,9 +246,10 @@ function TaskModal({ isOpen, onClose, task = null, initialDate = null }) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]"
           >
-            <div className="flex justify-between items-center p-6 border-b">
+            {/* Fixed Header */}
+            <div className="flex justify-between items-center p-6 border-b flex-shrink-0">
               <h2 className="text-xl font-semibold text-gray-800">
                 {task ? 'Edit Task' : 'Create New Task'}
               </h2>
@@ -262,8 +261,9 @@ function TaskModal({ isOpen, onClose, task = null, initialDate = null }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="overflow-y-auto p-6">
-              <div className="space-y-6">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6">
+              <form id="taskForm" onSubmit={handleSubmit} className="py-6 space-y-6">
                 {/* Title and Important Flag */}
                 <div className="flex items-center gap-2">
                   <input
@@ -536,24 +536,26 @@ function TaskModal({ isOpen, onClose, task = null, initialDate = null }) {
                     ))}
                   </div>
                 </div>
-              </div>
+              </form>
+            </div>
 
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                >
-                  {task ? 'Update Task' : 'Create Task'}
-                </button>
-              </div>
-            </form>
+            {/* Fixed Footer */}
+            <div className="flex justify-end gap-3 p-6 border-t flex-shrink-0 bg-white">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="taskForm"
+                className="btn btn-primary"
+              >
+                {task ? 'Update Task' : 'Create Task'}
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}
