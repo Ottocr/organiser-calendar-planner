@@ -7,7 +7,7 @@ import {
   toggleTaskComplete,
   moveTaskToTrash,
   toggleTaskImportant
-} from '../store/taskSlice';
+} from '../store/slices/taskSlice';
 import {
   CheckCircle,
   RadioButtonUnchecked,

@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { motion, AnimatePresence } from 'framer-motion';
-import { selectTasks, selectLists } from '../store/taskSlice';
+import { selectTasks, selectLists } from '../store/slices/taskSlice';
 import { format, parseISO } from 'date-fns';
 import TaskModal from './TaskModal';
 import TaskDetails from './TaskDetails';

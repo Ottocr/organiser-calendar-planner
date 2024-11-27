@@ -15,7 +15,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
-import { selectTasks, selectLists, selectPriorities } from '../store/taskSlice';
+import { selectTasks, selectLists, selectPriorities } from '../store/slices/taskSlice';
 import { 
   startOfWeek, 
   endOfWeek, 

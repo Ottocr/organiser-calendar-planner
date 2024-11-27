@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectLists, toggleTaskComplete, toggleTaskImportant, toggleChecklistItem } from '../store/taskSlice';
+import { selectLists, toggleTaskComplete, toggleTaskImportant, toggleChecklistItem } from '../store//slices/taskSlice';
 import { format, isPast } from 'date-fns';
 import {
   Close,

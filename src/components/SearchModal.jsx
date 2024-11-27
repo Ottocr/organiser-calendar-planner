@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { selectSearchResults, selectLists } from '../store/taskSlice';
+import { selectSearchResults, selectLists } from '../store/slices/taskSlice';
 import { format, isPast } from 'date-fns';
 import {
   CheckCircle,

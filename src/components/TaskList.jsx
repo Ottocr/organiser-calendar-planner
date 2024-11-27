@@ -11,7 +11,7 @@ import {
   addList,
   updateList,
   deleteList,
-} from '../store/taskSlice';
+} from '../store/slices/taskSlice';
 import {
   CheckCircle,
   RadioButtonUnchecked,

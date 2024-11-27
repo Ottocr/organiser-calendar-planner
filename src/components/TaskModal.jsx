@@ -11,7 +11,7 @@ import {
   removeChecklistItem,
   addAttachment,
   removeAttachment,
-} from '../store/taskSlice';
+} from '../store/slices/taskSlice';
 import {
   Close,
   AccessTime,

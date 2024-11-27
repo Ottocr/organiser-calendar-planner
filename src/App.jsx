@@ -6,7 +6,7 @@ import Sidebar from './components/Sidebar';
 import TaskList from './components/TaskList';
 import Analytics from './components/Analytics';
 import TaskModal from './components/TaskModal';
-import { setActiveFilters, selectActiveFilters } from './store/taskSlice';
+import { setActiveFilters, selectActiveFilters } from './store/slices/taskSlice';
 import './styles/index.css';
 
 const views = {
