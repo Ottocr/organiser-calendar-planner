@@ -6,7 +6,9 @@ import Sidebar from './components/Sidebar';
 import TaskList from './components/TaskList';
 import Analytics from './components/Analytics';
 import TaskModal from './components/TaskModal';
+import Auth from './components/auth/Auth';
 import { setActiveFilters, selectActiveFilters } from './store/slices/taskSlice';
+import { logoutUser } from './store/slices/userSlice';
 import './styles/index.css';
 
 const views = {
@@ -18,6 +20,8 @@ const views = {
 function App() {
   const dispatch = useDispatch();
   const activeFilters = useSelector(selectActiveFilters);
+  const isAuthenticated = useSelector(state => state.user.isAuthenticated);
+  const currentUser = useSelector(state => state.user.currentUser);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -41,15 +45,24 @@ function App() {
     setIsTaskModalOpen(false);
   };
 
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
+
   // Get the current view component
   const CurrentViewComponent = views[activeFilters.view] || TaskList;
+
+  // If not authenticated, show auth screen
+  if (!isAuthenticated) {
+    return <Auth />;
+  }
 
   return (
     <div className="flex h-screen bg-background">
       <motion.div
         initial={false}
         animate={{
-          width: isSidebarOpen ? '280px' : '60px',
+          width: isSidebarOpen ? '150px' : '44px',
           opacity: 1,
         }}
         className="h-screen bg-white shadow-lg overflow-hidden"
@@ -61,6 +74,8 @@ function App() {
           setIsSidebarOpen={setIsSidebarOpen}
           onNewTask={() => handleOpenTaskModal()}
           onEditTask={handleOpenTaskModal}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
       </motion.div>
 
@@ -76,6 +91,7 @@ function App() {
           >
             <CurrentViewComponent
               onEditTask={handleOpenTaskModal}
+              userId={currentUser?.id}
             />
           </motion.div>
         </AnimatePresence>
@@ -85,6 +101,7 @@ function App() {
         isOpen={isTaskModalOpen}
         onClose={handleCloseTaskModal}
         task={selectedTask}
+        userId={currentUser?.id}
       />
     </div>
   );

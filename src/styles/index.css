@@ -11,6 +11,10 @@
     @apply px-4 py-2 rounded-md transition-all duration-300 font-medium;
   }
   
+  .btn-sm {
+    @apply px-3 py-1.5 rounded-md transition-all duration-300 text-sm;
+  }
+  
   .btn-primary {
     @apply bg-primary text-white hover:bg-primary-dark;
   }
@@ -22,19 +26,39 @@
   .input {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary;
   }
+  
+  .input-sm {
+    @apply w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary;
+  }
+
+  .badge {
+    @apply px-1.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .icon-btn {
+    @apply p-1 rounded-full hover:bg-gray-100 transition-colors;
+  }
+
+  .icon-btn-sm {
+    @apply p-0.5 rounded-full hover:bg-gray-100 transition-colors;
+  }
 }
 
 /* FullCalendar Customizations */
 .fc {
-  @apply font-sans;
+  @apply font-sans text-sm;
 }
 
 .fc .fc-button-primary {
-  @apply bg-primary border-primary hover:bg-primary-dark;
+  @apply bg-primary border-primary hover:bg-primary-dark text-sm px-3 py-1.5;
 }
 
-.fc .fc-event {
-  @apply cursor-pointer transition-transform hover:scale-[1.02];
+/* Ensure event colors are not overridden */
+.fc .fc-event.fc-daygrid-event,
+.fc .fc-event.fc-timegrid-event {
+  @apply cursor-pointer transition-transform hover:scale-[1.02] text-xs;
+  background-color: var(--event-color) !important;
+  border-color: var(--event-color) !important;
 }
 
 /* Task Categories */
@@ -57,4 +81,27 @@
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Task Details Animation */
+.task-details-enter {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.task-details-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: all 0.3s ease-out;
+}
+
+.task-details-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.task-details-exit-active {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease-out;
 }

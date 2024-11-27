@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear User Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clear User Data</h1>
+    <p>Click the button below to clear all user data from localStorage:</p>
+    <button onclick="clearData()">Clear All User Data</button>
+    <div id="result"></div>
+
+    <script>
+        function clearData() {
+            try {
+                // Store the initial count of items
+                const initialCount = Object.keys(localStorage).length;
+                
+                // Remove user data
+                localStorage.removeItem('users');
+                localStorage.removeItem('currentUser');
+                
+                // Remove all task data
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('tasks_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+
+                // Count how many items were removed
+                const finalCount = Object.keys(localStorage).length;
+                const removedCount = initialCount - finalCount;
+
+                // Show success message
+                const result = document.getElementById('result');
+                result.className = 'success';
+                result.innerHTML = `Successfully cleared user data!<br>Removed ${removedCount} item(s) from localStorage.`;
+                
+                // Log to console for verification
+                console.log('localStorage cleared successfully');
+                console.log('Remaining items in localStorage:', Object.keys(localStorage));
+            } catch (error) {
+                // Show error message if something goes wrong
+                const result = document.getElementById('result');
+                result.className = 'error';
+                result.innerHTML = `Error clearing data: ${error.message}`;
+                console.error('Error clearing localStorage:', error);
+            }
+        }
+    </script>
+</body>
+</html>

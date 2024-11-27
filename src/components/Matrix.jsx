@@ -25,7 +25,7 @@ const quadrants = [
   { id: 'not-urgent-not-important', title: 'Not Urgent & Not Important', color: 'bg-green-100' },
 ];
 
-function Matrix({ onEditTask }) {
+function Matrix({ onEditTask, userId }) {
   const dispatch = useDispatch();
   const tasks = useSelector(selectTasks);
   const lists = useSelector(selectLists);
@@ -39,7 +39,7 @@ function Matrix({ onEditTask }) {
     };
 
     tasks
-      .filter(task => !task.deleted)
+      .filter(task => !task.deleted && task.userId === userId)
       .forEach(task => {
         const isUrgent = isBefore(parseISO(task.dueDate), new Date(Date.now() + 24 * 60 * 60 * 1000));
         const isImportant = task.important;
@@ -56,18 +56,18 @@ function Matrix({ onEditTask }) {
       });
 
     return result;
-  }, [tasks]);
+  }, [tasks, userId]);
 
   const handleToggleComplete = (taskId) => {
-    dispatch(toggleTaskComplete(taskId));
+    dispatch(toggleTaskComplete({ taskId, userId }));
   };
 
   const handleToggleImportant = (taskId) => {
-    dispatch(toggleTaskImportant(taskId));
+    dispatch(toggleTaskImportant({ taskId, userId }));
   };
 
   const handleDeleteTask = (taskId) => {
-    dispatch(moveTaskToTrash(taskId));
+    dispatch(moveTaskToTrash({ taskId, userId }));
   };
 
   const TaskCard = ({ task }) => (
@@ -76,7 +76,7 @@ function Matrix({ onEditTask }) {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="group bg-white rounded-lg shadow-sm p-4 mb-2 hover:shadow-md transition-shadow"
+      className="group bg-white rounded-lg shadow-sm p-2 mb-1.5 hover:shadow-md transition-shadow"
     >
       <div className="flex items-center gap-2">
         <button
@@ -84,15 +84,15 @@ function Matrix({ onEditTask }) {
           className="flex-shrink-0"
         >
           {task.completed ? (
-            <CheckCircle className="text-green-500" />
+            <CheckCircle className="text-green-500 w-4 h-4" />
           ) : (
-            <RadioButtonUnchecked className="text-gray-400" />
+            <RadioButtonUnchecked className="text-gray-400 w-4 h-4" />
           )}
         </button>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className={`font-medium truncate ${
+          <div className="flex items-center gap-1.5">
+            <h3 className={`text-sm font-medium truncate ${
               task.completed ? 'text-gray-400 line-through' : 'text-gray-800'
             }`}>
               {task.title}
@@ -102,15 +102,15 @@ function Matrix({ onEditTask }) {
               className="flex-shrink-0 text-gray-400 hover:text-yellow-400"
             >
               {task.important ? (
-                <Star className="text-yellow-400" />
+                <Star className="text-yellow-400 w-3.5 h-3.5" />
               ) : (
-                <StarBorder />
+                <StarBorder className="w-3.5 h-3.5" />
               )}
             </button>
           </div>
-          <div className="flex items-center gap-2 mt-1 text-sm">
+          <div className="flex items-center gap-1.5 mt-0.5">
             <span
-              className="px-2 py-0.5 rounded-full text-xs font-medium"
+              className="px-1.5 py-0.5 rounded-full text-xs font-medium"
               style={{
                 backgroundColor: lists.find(list => list.id === task.list)?.color,
                 color: 'white'
@@ -133,13 +133,13 @@ function Matrix({ onEditTask }) {
             onClick={() => onEditTask(task)}
             className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => handleDeleteTask(task.id)}
             className="p-1 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"
           >
-            <Delete className="w-4 h-4" />
+            <Delete className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -147,20 +147,20 @@ function Matrix({ onEditTask }) {
   );
 
   return (
-    <div className="h-full flex flex-col space-y-6">
+    <div className="h-full flex flex-col space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-gray-800">
+        <h2 className="text-base font-semibold text-gray-800">
           Eisenhower Matrix
         </h2>
       </div>
 
-      <div className="flex-1 grid grid-cols-2 gap-6">
+      <div className="flex-1 grid grid-cols-2 gap-4">
         {quadrants.map(quadrant => (
           <div
             key={quadrant.id}
-            className={`${quadrant.color} rounded-xl p-4 flex flex-col`}
+            className={`${quadrant.color} rounded-lg p-3 flex flex-col`}
           >
-            <h3 className="font-semibold text-gray-800 mb-4">
+            <h3 className="text-sm font-semibold text-gray-800 mb-2">
               {quadrant.title}
             </h3>
             <div className="flex-1 overflow-y-auto">

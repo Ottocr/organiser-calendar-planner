@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectLists, toggleTaskComplete, toggleTaskImportant, toggleChecklistItem } from '../store//slices/taskSlice';
+import { selectLists, toggleTaskComplete, toggleTaskImportant, toggleChecklistItem, selectTaskById } from '../store//slices/taskSlice';
 import { format, isPast } from 'date-fns';
 import {
   Close,
@@ -21,22 +21,27 @@ import {
 } from '@mui/icons-material';
 import { useState, useRef } from 'react';
 
-function TaskDetails({ task, onClose, onEdit }) {
+function TaskDetails({ task: initialTask, onClose, onEdit, userId }) {
   const dispatch = useDispatch();
   const lists = useSelector(selectLists);
+  // Get the latest task state from Redux
+  const task = useSelector(state => selectTaskById(state, initialTask.id));
   const [isPlaying, setIsPlaying] = useState({});
   const audioRefs = useRef({});
 
+  // If task doesn't exist or doesn't belong to current user, don't render
+  if (!task || task.userId !== userId) return null;
+
   const handleToggleComplete = () => {
-    dispatch(toggleTaskComplete(task.id));
+    dispatch(toggleTaskComplete({ taskId: task.id, userId }));
   };
 
   const handleToggleImportant = () => {
-    dispatch(toggleTaskImportant(task.id));
+    dispatch(toggleTaskImportant({ taskId: task.id, userId }));
   };
 
   const handleToggleChecklistItem = (itemId) => {
-    dispatch(toggleChecklistItem({ taskId: task.id, itemId }));
+    dispatch(toggleChecklistItem({ taskId: task.id, itemId, userId }));
   };
 
   const handlePlayVoiceNote = (attachmentId) => {
@@ -56,77 +61,71 @@ function TaskDetails({ task, onClose, onEdit }) {
 
   return (
     <motion.div
-      initial={{ x: '100%', opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: '100%', opacity: 0 }}
-      transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-      className="fixed top-0 right-0 h-screen w-[500px] bg-white shadow-2xl z-50 flex flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
-        <h2 className="text-xl font-semibold text-gray-800">Task Details</h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onEdit}
-            className="p-2 hover:bg-gray-100 rounded-full text-gray-600"
+      <div className="flex items-center justify-between p-2 border-b bg-gray-50">
+        <div className="flex items-center gap-1.5">
+          <button 
+            onClick={handleToggleComplete}
+            className="icon-btn-sm"
           >
-            <Edit />
+            {task.completed ? (
+              <CheckCircle className="text-green-500 w-3.5 h-3.5" />
+            ) : (
+              <RadioButtonUnchecked className="text-gray-400 w-3.5 h-3.5" />
+            )}
+          </button>
+          <h3 className={`text-sm font-medium ${
+            task.completed ? 'line-through text-gray-400' : 'text-gray-800'
+          }`}>
+            {task.title}
+          </h3>
+        </div>
+        <div className="flex items-center gap-0.5">
+          <button
+            onClick={handleToggleImportant}
+            className="icon-btn-sm"
+          >
+            {task.important ? (
+              <Star className="text-yellow-400 w-3.5 h-3.5" />
+            ) : (
+              <StarBorder className="text-gray-400 w-3.5 h-3.5" />
+            )}
+          </button>
+          <button
+            onClick={() => onEdit(task)}
+            className="icon-btn-sm text-gray-400 hover:text-gray-600"
+          >
+            <Edit className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full text-gray-600"
+            className="icon-btn-sm text-gray-400 hover:text-gray-600"
           >
-            <Close />
+            <Close className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {/* Title Section */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={handleToggleComplete}
-              className="p-1 rounded-full hover:bg-gray-100"
-            >
-              {task.completed ? (
-                <CheckCircle className="text-green-500 w-6 h-6" />
-              ) : (
-                <RadioButtonUnchecked className="text-gray-400 w-6 h-6" />
-              )}
-            </button>
-            <h3 className={`text-xl font-medium ${
-              task.completed ? 'line-through text-gray-400' : 'text-gray-800'
-            }`}>
-              {task.title}
-            </h3>
-          </div>
-          <button
-            onClick={handleToggleImportant}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            {task.important ? (
-              <Star className="text-yellow-400" />
-            ) : (
-              <StarBorder className="text-gray-400" />
-            )}
-          </button>
-        </div>
-
+      <div className="overflow-y-auto h-[calc(100%-36px)] p-2">
         {/* Metadata */}
-        <div className="space-y-4 mb-6">
-          <div className="flex items-center gap-2 text-gray-600">
-            <Schedule className="w-5 h-5" />
+        <div className="space-y-1 mb-2">
+          <div className="flex items-center gap-1 text-gray-600 text-xs">
+            <Schedule className="w-3.5 h-3.5" />
             <span className={isPast(new Date(task.dueDate)) && !task.completed ? 'text-red-500' : ''}>
               Due {format(new Date(task.dueDate), 'PPp')}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-gray-600">
-            <ListIcon className="w-5 h-5" />
+          <div className="flex items-center gap-1 text-gray-600">
+            <ListIcon className="w-3.5 h-3.5" />
             <span
-              className="px-2 py-1 rounded-full text-sm font-medium"
+              className="badge"
               style={{
                 backgroundColor: lists.find(list => list.id === task.list)?.color,
                 color: 'white'
@@ -136,9 +135,9 @@ function TaskDetails({ task, onClose, onEdit }) {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-gray-600">
-            <Flag className="w-5 h-5" />
-            <span className={`px-2 py-1 rounded-full text-sm font-medium bg-task-${task.priority} text-white`}>
+          <div className="flex items-center gap-1 text-gray-600">
+            <Flag className="w-3.5 h-3.5" />
+            <span className={`badge bg-task-${task.priority}`}>
               {task.priority}
             </span>
           </div>
@@ -146,14 +145,14 @@ function TaskDetails({ task, onClose, onEdit }) {
 
         {/* Description with Embedded Media */}
         {(task.description || task.attachments?.length > 0) && (
-          <div className="mb-6 space-y-4">
-            <h4 className="text-sm font-medium text-gray-700">Description & Attachments</h4>
+          <div className="mb-2 space-y-1.5">
+            <h4 className="text-xs font-medium text-gray-700">Description & Attachments</h4>
             <div className="prose prose-sm max-w-none">
               {task.description && (
-                <p className="text-gray-600 whitespace-pre-wrap mb-4">{task.description}</p>
+                <p className="text-xs text-gray-600 whitespace-pre-wrap mb-1.5">{task.description}</p>
               )}
               {task.attachments?.map((attachment, index) => (
-                <div key={index} className="mb-4">
+                <div key={index} className="mb-1.5">
                   {attachment.type === 'image' ? (
                     <div className="rounded-lg overflow-hidden shadow-sm">
                       <img
@@ -163,19 +162,19 @@ function TaskDetails({ task, onClose, onEdit }) {
                       />
                     </div>
                   ) : attachment.type === 'voice' && (
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded-lg">
                       <button
                         onClick={() => handlePlayVoiceNote(attachment.id)}
-                        className="p-2 rounded-full hover:bg-gray-200"
+                        className="icon-btn-sm"
                       >
                         {isPlaying[attachment.id] ? (
-                          <Pause className="text-primary" />
+                          <Pause className="text-primary w-3.5 h-3.5" />
                         ) : (
-                          <PlayArrow className="text-primary" />
+                          <PlayArrow className="text-primary w-3.5 h-3.5" />
                         )}
                       </button>
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-700">
+                        <div className="text-xs font-medium text-gray-700">
                           {attachment.name}
                         </div>
                         <audio
@@ -195,30 +194,30 @@ function TaskDetails({ task, onClose, onEdit }) {
 
         {/* Checklist */}
         {task.checklist?.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-700">Checklist</h4>
-              <span className="text-sm text-gray-500">
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-xs font-medium text-gray-700">Checklist</h4>
+              <span className="text-xs text-gray-500">
                 {task.checklist.filter(item => item.completed).length}/{task.checklist.length}
               </span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-0.5">
               {task.checklist.map(item => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="flex items-center gap-1 p-1 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <button
                     onClick={() => handleToggleChecklistItem(item.id)}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     {item.completed ? (
-                      <CheckBox className="text-green-500" />
+                      <CheckBox className="text-green-500 w-3.5 h-3.5" />
                     ) : (
-                      <CheckBoxOutlineBlank />
+                      <CheckBoxOutlineBlank className="w-3.5 h-3.5" />
                     )}
                   </button>
-                  <span className={`flex-1 ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                  <span className={`text-xs ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
                     {item.text}
                   </span>
                 </div>

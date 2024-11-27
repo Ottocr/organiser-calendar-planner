@@ -42,10 +42,15 @@ ChartJS.register(
   Filler,
 );
 
-function Analytics() {
-  const tasks = useSelector(selectTasks);
+function Analytics({ userId }) {
+  const allTasks = useSelector(selectTasks);
   const lists = useSelector(selectLists);
   const priorities = useSelector(selectPriorities);
+
+  // Filter tasks by user
+  const tasks = useMemo(() => {
+    return allTasks.filter(task => task.userId === userId);
+  }, [allTasks, userId]);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -70,7 +75,12 @@ function Analytics() {
 
   // Prepare data for list distribution chart
   const listData = useMemo(() => {
-    const distribution = lists.map(list => ({
+    // Only include lists that have tasks from this user
+    const userLists = lists.filter(list => 
+      tasks.some(task => task.list === list.id && !task.deleted)
+    );
+
+    const distribution = userLists.map(list => ({
       list: list.name,
       count: tasks.filter(task => task.list === list.id && !task.deleted).length,
       color: list.color
@@ -166,10 +176,19 @@ function Analytics() {
     };
   }, [tasks]);
 
+  // If no user is logged in, don't show analytics
+  if (!userId) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <p className="text-gray-500">Please log in to view analytics</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full space-y-6 overflow-y-auto">
+    <div className="h-full space-y-4 overflow-y-auto">
       {/* Stats Overview */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-4 gap-4">
         {[
           { label: 'Total Tasks', value: stats.total, color: 'bg-blue-500' },
           { label: 'Completed', value: stats.completed, color: 'bg-green-500' },
@@ -181,15 +200,15 @@ function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6"
+            className="bg-white rounded-lg shadow-lg p-3"
           >
-            <div className={`w-12 h-12 ${stat.color} rounded-lg mb-4 flex items-center justify-center`}>
-              <span className="text-white text-xl font-bold">
+            <div className={`w-8 h-8 ${stat.color} rounded-lg mb-2 flex items-center justify-center`}>
+              <span className="text-white text-sm font-bold">
                 {stat.label.charAt(0)}
               </span>
             </div>
-            <h3 className="text-gray-500 text-sm">{stat.label}</h3>
-            <p className="text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
+            <h3 className="text-gray-500 text-xs">{stat.label}</h3>
+            <p className="text-base font-bold text-gray-800 mt-0.5">{stat.value}</p>
           </motion.div>
         ))}
       </div>
@@ -198,39 +217,39 @@ function Analytics() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="grid grid-cols-2 gap-6"
+        className="grid grid-cols-2 gap-4"
       >
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-3">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">
             Daily Average
           </h3>
-          <p className="text-3xl font-bold text-primary">
+          <p className="text-xl font-bold text-primary">
             {productivityTrends.avgTasksPerDay}
           </p>
-          <p className="text-gray-500 mt-1">tasks per day</p>
+          <p className="text-xs text-gray-500 mt-0.5">tasks per day</p>
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-3">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">
             Completion Time
           </h3>
-          <p className="text-3xl font-bold text-primary">
+          <p className="text-xl font-bold text-primary">
             {productivityTrends.avgCompletionTime}
           </p>
-          <p className="text-gray-500 mt-1">days on average</p>
+          <p className="text-xs text-gray-500 mt-0.5">days on average</p>
         </div>
       </motion.div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-4">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-xl shadow-lg p-6"
+          className="bg-white rounded-lg shadow-lg p-3"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">
             List Distribution
           </h3>
-          <div className="h-64">
+          <div className="h-48">
             <Doughnut
               data={listData}
               options={{
@@ -240,7 +259,10 @@ function Analytics() {
                   legend: {
                     position: 'bottom',
                     labels: {
-                      padding: 20
+                      padding: 10,
+                      font: {
+                        size: 11
+                      }
                     }
                   }
                 },
@@ -253,12 +275,12 @@ function Analytics() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-xl shadow-lg p-6"
+          className="bg-white rounded-lg shadow-lg p-3"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">
             Weekly Activity
           </h3>
-          <div className="h-64">
+          <div className="h-48">
             <Line
               data={weeklyData}
               options={{
@@ -266,14 +288,30 @@ function Analytics() {
                 maintainAspectRatio: false,
                 plugins: {
                   legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                      padding: 10,
+                      font: {
+                        size: 11
+                      }
+                    }
                   }
                 },
                 scales: {
                   y: {
                     beginAtZero: true,
                     ticks: {
-                      stepSize: 1
+                      stepSize: 1,
+                      font: {
+                        size: 10
+                      }
+                    }
+                  },
+                  x: {
+                    ticks: {
+                      font: {
+                        size: 10
+                      }
                     }
                   }
                 }
@@ -287,12 +325,12 @@ function Analytics() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-lg p-6"
+        className="bg-white rounded-lg shadow-lg p-3"
       >
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">
           Task Priority Distribution
         </h3>
-        <div className="h-64">
+        <div className="h-48">
           <Bar
             data={{
               labels: priorities.map(p => p.name),
@@ -315,7 +353,17 @@ function Analytics() {
                 y: {
                   beginAtZero: true,
                   ticks: {
-                    stepSize: 1
+                    stepSize: 1,
+                    font: {
+                      size: 10
+                    }
+                  }
+                },
+                x: {
+                  ticks: {
+                    font: {
+                      size: 10
+                    }
                   }
                 }
               }

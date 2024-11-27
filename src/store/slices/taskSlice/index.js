@@ -22,6 +22,7 @@ const taskSlice = createSlice({
 
 export const {
   // Task actions
+  loadStoredTasks,
   addTask,
   updateTask,
   toggleTaskComplete,
@@ -29,6 +30,7 @@ export const {
   moveTaskToTrash,
   restoreTaskFromTrash,
   deleteTaskPermanently,
+  clearUserTasks,
   
   // Checklist actions
   addChecklistItem,
