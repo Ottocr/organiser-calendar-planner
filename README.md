@@ -7,7 +7,10 @@ A modern, intuitive task management application with calendar integration, beaut
 - **Task Management**
   - Create, edit, and delete tasks
   - Set due dates and times
-  - Add descriptions and priorities
+  - Rich text descriptions with embedded media
+  - Interactive checklists
+  - Image attachments
+  - Voice note recordings
   - Mark tasks as important
   - Track completion status
 
@@ -16,22 +19,26 @@ A modern, intuitive task management application with calendar integration, beaut
   - Color-coded categories
   - Priority levels (Urgent, Normal, Low)
   - Filter and sort tasks
+  - Matrix view (Eisenhower Matrix)
 
 - **Views**
   - Calendar view with task integration
   - List view with filtering options
-  - Matrix view (Eisenhower Matrix)
+  - Matrix view for priority management
   - Analytics dashboard
+  - Detailed task view with media support
 
 - **Time Management**
   - View tasks by timeframe (Today, Week, Month)
   - Due date tracking
   - Overdue task highlighting
+  - Start and end time scheduling
 
 - **Search & Filters**
   - Global search functionality
   - Filter by priority, category, and date
   - Sort by various criteria
+  - Quick task access
 
 - **UI/UX Features**
   - Modern, clean interface
@@ -39,6 +46,7 @@ A modern, intuitive task management application with calendar integration, beaut
   - Responsive design
   - Collapsible sidebar
   - Dark mode support (coming soon)
+  - Interactive task details panel
 
 ## Technology Stack
 
@@ -64,6 +72,13 @@ A modern, intuitive task management application with calendar integration, beaut
 
 ## Version History
 
+### v0.2.0
+- Added rich task details panel
+- Implemented embedded media support (images, voice notes)
+- Added interactive checklists
+- Enhanced task viewing experience
+- Improved UI/UX with smooth animations
+
 ### v0.1.0
 - Initial release
 - Basic task management functionality
@@ -83,6 +98,8 @@ A modern, intuitive task management application with calendar integration, beaut
 - Collaboration features
 - Custom themes
 - Export/Import functionality
+- Advanced analytics
+- Integration with third-party calendars
 
 ## Contributing
 
